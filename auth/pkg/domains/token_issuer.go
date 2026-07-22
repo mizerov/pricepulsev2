@@ -2,7 +2,9 @@ package domains
 
 import (
 	"context"
+	"crypto/rsa"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"time"
@@ -16,13 +18,13 @@ type TokenIssuer struct {
 	sessionRepository SessionRepository
 	tokenTTL          time.Duration
 	refreshTokenTTL   time.Duration
-	signedString      string
+	JWTPrivateKey     *rsa.PrivateKey
 }
 
 type TokenIssuerConfig struct {
-	TokenTTL        time.Duration
-	RefreshTokenTTL time.Duration
-	SignedString    string
+	TokenTTL         time.Duration
+	RefreshTokenTTL  time.Duration
+	JWTPrivateKeyB64 string
 }
 
 func NewTokenIssuer(i do.Injector) (*TokenIssuer, error) {
@@ -35,11 +37,21 @@ func NewTokenIssuer(i do.Injector) (*TokenIssuer, error) {
 		return nil, fmt.Errorf("failed to invoke token issuer config: %w", err)
 	}
 
+	keyBytes, err := base64.StdEncoding.DecodeString(config.JWTPrivateKeyB64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64 private key: %w", err)
+	}
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(keyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse RSA private key: %w", err)
+	}
+
 	return &TokenIssuer{
 		sessionRepository: sessionRepository,
 		tokenTTL:          config.TokenTTL,
 		refreshTokenTTL:   config.RefreshTokenTTL,
-		signedString:      config.SignedString,
+		JWTPrivateKey:     privateKey,
 	}, nil
 }
 
@@ -53,7 +65,7 @@ type TokenPair struct {
 }
 
 func (self *TokenIssuer) Issue(ctx context.Context, accountID uuid.UUID) (*TokenPair, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWtClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, JWtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "auth",
 			Subject:   accountID.String(),
@@ -65,7 +77,7 @@ func (self *TokenIssuer) Issue(ctx context.Context, accountID uuid.UUID) (*Token
 		},
 	})
 
-	signedToken, err := token.SignedString([]byte(self.signedString))
+	signedToken, err := token.SignedString(self.JWTPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign token: %w", err)
 	}

@@ -21,15 +21,15 @@ import (
 )
 
 type Config struct {
-	DBHost          string        `env:"DB_HOST" envDefault:"localhost"`
-	DBPort          string        `env:"DB_PORT" envDefault:"5432"`
-	DBUser          string        `env:"DB_USER" envDefault:"auth"`
-	DBPassword      string        `env:"DB_PASSWORD" envDefault:"auth"`
-	DBName          string        `env:"DB_NAME" envDefault:"auth"`
-	TokenTTL        time.Duration `env:"TOKEN_TTL" envDefault:"15m"`
-	RefreshTokenTTL time.Duration `env:"REFRESH_TOKEN_TTL" envDefault:"336h"`
-	SignedString    string        `env:"SIGNED_STRING" envDefault:"test"`
-	AppPort         string        `env:"APP_PORT" envDefault:"8080"`
+	DBHost           string        `env:"DB_HOST" envDefault:"localhost"`
+	DBPort           string        `env:"DB_PORT" envDefault:"5432"`
+	DBUser           string        `env:"DB_USER" envDefault:"auth"`
+	DBPassword       string        `env:"DB_PASSWORD" envDefault:"auth"`
+	DBName           string        `env:"DB_NAME" envDefault:"auth"`
+	TokenTTL         time.Duration `env:"TOKEN_TTL" envDefault:"15m"`
+	RefreshTokenTTL  time.Duration `env:"REFRESH_TOKEN_TTL" envDefault:"336h"`
+	JWTPrivateKeyB64 string        `env:"JWT_PRIVATE_KEY_B64"`
+	AppPort          string        `env:"APP_PORT" envDefault:"8081"`
 }
 
 func main() {
@@ -58,9 +58,9 @@ func main() {
 			do.ProvideValue(i, pool)
 			do.ProvideValue(i, log)
 			do.ProvideValue(i, domains.TokenIssuerConfig{
-				TokenTTL:        cfg.TokenTTL,
-				RefreshTokenTTL: cfg.RefreshTokenTTL,
-				SignedString:    cfg.SignedString,
+				TokenTTL:         cfg.TokenTTL,
+				RefreshTokenTTL:  cfg.RefreshTokenTTL,
+				JWTPrivateKeyB64: cfg.JWTPrivateKeyB64,
 			})
 		},
 	)
