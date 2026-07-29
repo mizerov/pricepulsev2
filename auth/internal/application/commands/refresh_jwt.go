@@ -11,6 +11,7 @@ import (
 
 type RefreshJWTCommand struct {
 	sessionRepository domains.SessionRepository
+	accountRepository domains.AccountRepository
 	tokenIssuer       *domains.TokenIssuer
 }
 
@@ -32,8 +33,12 @@ func NewRefreshJWTCommand(i do.Injector) (*RefreshJWTCommand, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to invoke token issuer: %w", err)
 	}
+	accountRepository, err := do.InvokeAs[domains.AccountRepository](i)
+	if err != nil {
+		return nil, fmt.Errorf("failed to invoke account repository: %w", err)
+	}
 
-	return &RefreshJWTCommand{sessionRepository: sessionRepository, tokenIssuer: tokenIssuer}, nil
+	return &RefreshJWTCommand{sessionRepository: sessionRepository, accountRepository: accountRepository, tokenIssuer: tokenIssuer}, nil
 }
 
 func (self *RefreshJWTCommand) Execute(ctx context.Context, data RefreshJWTData) (*RefreshJWTResponse, error) {
@@ -51,7 +56,12 @@ func (self *RefreshJWTCommand) Execute(ctx context.Context, data RefreshJWTData)
 		return nil, fmt.Errorf("failed to delete session: %w", err)
 	}
 
-	tokenPair, err := self.tokenIssuer.Issue(ctx, session.AccountID)
+	account, err := self.accountRepository.FindByID(ctx, session.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find account: %w", err)
+	}
+
+	tokenPair, err := self.tokenIssuer.Issue(ctx, account)
 	if err != nil {
 		return nil, fmt.Errorf("failed to issue token: %w", err)
 	}

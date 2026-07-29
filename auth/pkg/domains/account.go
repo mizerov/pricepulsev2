@@ -13,6 +13,13 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+type Role string
+
+const (
+	RoleUser  Role = "user"
+	RoleAdmin Role = "admin"
+)
+
 var ErrAccountNotFound = errors.New("account not found")
 var ErrEmailAlreadyExists = errors.New("email address already exists")
 var ErrInvalidPassword = errors.New("invalid password")
@@ -20,6 +27,7 @@ var ErrInvalidHash = errors.New("the encoded hash is not in the correct format")
 
 type AccountRepository interface {
 	FindByEmail(ctx context.Context, email string) (*Account, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*Account, error)
 	Create(ctx context.Context, account *Account) error
 }
 
@@ -27,6 +35,7 @@ type Account struct {
 	ID           uuid.UUID
 	Email        string
 	PasswordHash string
+	Role         Role
 }
 
 type argonParams struct {
@@ -54,6 +63,7 @@ func NewAccount(email string, password string) (*Account, error) {
 		ID:           uuid.New(),
 		Email:        email,
 		PasswordHash: passwordHash,
+		Role:         RoleUser,
 	}, nil
 }
 

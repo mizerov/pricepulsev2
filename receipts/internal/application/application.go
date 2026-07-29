@@ -14,6 +14,7 @@ type Application struct {
 
 type Commands struct {
 	UploadReceipt *commands.UploadReceiptCommand
+	BindProduct   *commands.BindProductCommand
 }
 
 func NewApplication(i do.Injector) (*Application, error) {
@@ -21,10 +22,15 @@ func NewApplication(i do.Injector) (*Application, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to invoke upload receipt command: %w", err)
 	}
+	bindProductCommand, err := do.Invoke[*commands.BindProductCommand](i)
+	if err != nil {
+		return nil, fmt.Errorf("failed to invoke bind product command: %w", err)
+	}
 
 	return &Application{
 		Commands: Commands{
 			UploadReceipt: uploadReceiptCommand,
+			BindProduct:   bindProductCommand,
 		},
 	}, nil
 }

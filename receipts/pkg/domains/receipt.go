@@ -10,6 +10,7 @@ import (
 type ReceiptRepository interface {
 	Exists(ctx context.Context, fn, fd, fp string) (bool, error)
 	Save(ctx context.Context, receipt *Receipt) error
+	BindProductToItem(ctx context.Context, receiptID, itemID, productID uuid.UUID) error
 }
 
 type Receipt struct {
@@ -30,6 +31,7 @@ type Receipt struct {
 type ReceiptItem struct {
 	ID        uuid.UUID
 	ReceiptID uuid.UUID
+	ProductID *uuid.UUID
 	Name      string
 	Price     int64
 	Quantity  float64

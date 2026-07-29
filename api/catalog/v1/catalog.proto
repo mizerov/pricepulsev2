@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package catalog.v1;
+
+option go_package = "github.com/mizerov/pricepulse/api/catalog/v1;catalogv1";
+
+service CatalogService {
+  rpc CheckProductExists (CheckProductExistsRequest) returns (CheckProductExistsResponse);
+}
+
+message CheckProductExistsRequest {
+  string product_id = 1;
+  string account_id = 2; // For draft ownership check
+}
+
+message CheckProductExistsResponse {
+  bool exists = 1;
+}

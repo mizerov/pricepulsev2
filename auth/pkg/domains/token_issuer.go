@@ -57,6 +57,7 @@ func NewTokenIssuer(i do.Injector) (*TokenIssuer, error) {
 
 type JWtClaims struct {
 	jwt.RegisteredClaims
+	Role string `json:"role"`
 }
 
 type TokenPair struct {
@@ -64,17 +65,18 @@ type TokenPair struct {
 	RefreshToken string
 }
 
-func (self *TokenIssuer) Issue(ctx context.Context, accountID uuid.UUID) (*TokenPair, error) {
+func (self *TokenIssuer) Issue(ctx context.Context, account *Account) (*TokenPair, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, JWtClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "auth",
-			Subject:   accountID.String(),
+			Subject:   account.ID.String(),
 			Audience:  jwt.ClaimStrings{"all"},
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(self.tokenTTL)),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ID:        uuid.NewString(),
 		},
+		Role: string(account.Role),
 	})
 
 	signedToken, err := token.SignedString(self.JWTPrivateKey)
@@ -86,7 +88,7 @@ func (self *TokenIssuer) Issue(ctx context.Context, accountID uuid.UUID) (*Token
 
 	session := &Session{
 		ID:        uuid.New(),
-		AccountID: accountID,
+		AccountID: account.ID,
 		TokenHash: HashToken(rawRefreshToken),
 		IsBlocked: false,
 		ExpiresAt: time.Now().Add(self.refreshTokenTTL),

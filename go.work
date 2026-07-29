@@ -1,4 +1,8 @@
 go 1.26.5
 
-use ./auth
-use ./receipts
+use (
+	./auth
+	./api
+	./catalog
+	./receipts
+)

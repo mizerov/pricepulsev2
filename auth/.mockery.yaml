@@ -1,0 +1,8 @@
+with-expecter: true
+outpkg: mocks
+dir: internal/mocks
+packages:
+  github.com/mizerov/pricepulse/auth/pkg/domains:
+    interfaces:
+      AccountRepository:
+      SessionRepository:

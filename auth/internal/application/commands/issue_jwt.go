@@ -48,7 +48,7 @@ func (self *IssueJWTCommand) Execute(ctx context.Context, data IssueJWTData) (*I
 		return nil, fmt.Errorf("failed to verify password: %w", err)
 	}
 
-	tokenPair, err := self.tokenIssuer.Issue(ctx, account.ID)
+	tokenPair, err := self.tokenIssuer.Issue(ctx, account)
 	if err != nil {
 		return nil, fmt.Errorf("failed to issue token: %w", err)
 	}

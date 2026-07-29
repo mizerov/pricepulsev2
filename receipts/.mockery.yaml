@@ -1,0 +1,11 @@
+with-expecter: true
+outpkg: mocks
+dir: internal/mocks
+packages:
+  github.com/mizerov/pricepulse/receipts/pkg/domains:
+    interfaces:
+      ReceiptRepository:
+      CatalogClient:
+  github.com/mizerov/pricepulse/receipts/internal/application/commands:
+    interfaces:
+      ReceiptProvider:

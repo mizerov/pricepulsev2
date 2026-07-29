@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mizerov/pricepulse/receipts/pkg/domains"
 	"github.com/samber/do/v2"
@@ -84,5 +85,17 @@ func (self *ReceiptRepository) Save(ctx context.Context, receipt *domains.Receip
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
+	return nil
+}
+
+func (self *ReceiptRepository) BindProductToItem(ctx context.Context, receiptID, itemID, productID uuid.UUID) error {
+	query := `UPDATE receipt_items SET product_id = $1 WHERE receipt_id = $2 AND id = $3`
+	tag, err := self.db.Exec(ctx, query, productID, receiptID, itemID)
+	if err != nil {
+		return fmt.Errorf("failed to bind product to item: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("receipt item not found")
+	}
 	return nil
 }

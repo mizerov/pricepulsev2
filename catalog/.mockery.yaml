@@ -1,0 +1,9 @@
+with-expecter: true
+outpkg: mocks
+dir: internal/mocks
+packages:
+  github.com/mizerov/pricepulse/catalog/pkg/domains:
+    interfaces:
+      ProductRepository:
+      ProductSearchRepository:
+      OutboxEventRepository:

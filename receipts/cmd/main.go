@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/mizerov/pricepulse/receipts/internal/application"
+	"github.com/mizerov/pricepulse/receipts/internal/infrastructure/grpc"
 	"github.com/mizerov/pricepulse/receipts/internal/infrastructure/postgres"
 	"github.com/mizerov/pricepulse/receipts/internal/infrastructure/proverkacheka"
 	httptransport "github.com/mizerov/pricepulse/receipts/internal/transport/http"
@@ -20,13 +21,13 @@ import (
 
 type Config struct {
 	DBHost             string `env:"DB_HOST" envDefault:"localhost"`
-	DBPort             string `env:"DB_PORT" envDefault:"5441"`
+	DBPort             string `env:"DB_PORT" envDefault:"5434"`
 	DBUser             string `env:"DB_USER" envDefault:"receipts"`
 	DBPassword         string `env:"DB_PASSWORD" envDefault:"receipts"`
 	DBName             string `env:"DB_NAME" envDefault:"receipts"`
+	AppPort            string `env:"APP_PORT" envDefault:"8082"`
 	JWTPublicKeyB64    string `env:"JWT_PUBLIC_KEY_B64"`
 	ProverkaChekaToken string `env:"PROVERKACHEKA_TOKEN"`
-	AppPort            string `env:"APP_PORT" envDefault:"8082"`
 }
 
 func main() {
@@ -51,6 +52,7 @@ func main() {
 		application.Package,
 		postgres.Package,
 		proverkacheka.Package,
+		grpc.Package,
 		func(i do.Injector) {
 			do.ProvideValue(i, pool)
 			do.ProvideValue(i, log)
@@ -58,6 +60,7 @@ func main() {
 				HttpClient: &http.Client{},
 				Token:      cfg.ProverkaChekaToken,
 			})
+			do.ProvideValue(i, httptransport.RouterConfig{PublicKeyB64: cfg.JWTPublicKeyB64})
 		},
 	)
 
